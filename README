@@ -1,0 +1,1 @@
+This script goes through the networks you have access to and allows you to reboot a specific meraki device. I built this script so that my Helpdesk could reboot meraki mx devices because sometimes the vpn tunnel doesn't come up with NAT and has issues. This saves them from having to contact me to reboot the device and gives them some additional control.
