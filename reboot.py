@@ -7,6 +7,7 @@ import requests
 import json
 import os
 import sys
+import re
 
 #Private credentials file, used to make life easy when I deploy new scripts.
 import cred
@@ -16,6 +17,10 @@ organization = cred.organization
 key = cred.key
 hub = cred.hub
 
+#This pulls the information based on s/ns that start with these.
+regex = re.compile('Q2PD')
+regex1 = re.compile('Q2HD')
+regex2 = re.compile('Q2MN')
 
 #Main URL for the Meraki Platform
 dashboard = "https://api.meraki.com/api/v0"
@@ -24,6 +29,7 @@ headers = {'X-Cisco-Meraki-API-Key': (key), 'Content-Type': 'application/json'}
 
 #pulls in the store number from the script that is calling this script, this is passed from the website that is calling the script.
 store_input = sys.argv[1]
+ap = sys.argv[2]
 # need to strip off the zeros that come from the website calling the script.
 store = store_input.strip("0")
 
@@ -44,15 +50,19 @@ for i in get_network_id_json:
 
 #get the device id for the network above, so that we can find the s/n of the device.
 get_device_id_url = dashboard + '/networks/%s/devices' % network_id
-
 get_device_id_response = requests.get(get_device_id_url, headers=headers)
-
 get_device_id_json = get_device_id_response.json()
 
 for device in get_device_id_json:
     device_id = (device["serial"])
-
-#send the reboot command to the cloud
-
-reboot_device_url = dashboard + '/networks/%s/devices/%s/reboot' % (network_id, device_id)
-reboot_device_response = requests.post(reboot_device_url, headers=headers)
+    if regex.match(device["serial"]) and ap == "yes":
+        reboot_device_url = dashboard + '/networks/%s/devices/%s/reboot' % (network_id, device_id)
+        reboot_device_response = requests.post(reboot_device_url, headers=headers)
+    elif regex1.match(device["serial"]) and ap == "yes":
+        reboot_device_url = dashboard + '/networks/%s/devices/%s/reboot' % (network_id, device_id)
+        reboot_device_response = requests.post(reboot_device_url, headers=headers)
+    elif regex2.match(device["serial"]) and ap == "no":
+        reboot_device_url = dashboard + '/networks/%s/devices/%s/reboot' % (network_id, device_id)
+        reboot_device_response = requests.post(reboot_device_url, headers=headers)
+    else:
+        continue
